@@ -1,0 +1,103 @@
+ ;Input ports
+ switches_port 	EQU $02
+ status_port	EQU $00
+ data_in_port	EQU $01
+ 
+ ;Output ports
+ led_port     	EQU $02
+ data_out_port  EQU $01
+ 
+ ;Stuffz
+ first_letter	EQU s0
+ second_letter	EQU s1
+ third_letter	EQU s2
+ status		EQU s3
+ temp		EQU s4
+ temp2		EQU s5
+ rx_present	EQU $08 ; This is the fourth bit
+ space 		EQU $20
+ new_line	EQU $0A
+ return		EQU $0D
+ s_letter	EQU $73
+ l_letter	EQU $6C
+ jump Main 
+ 
+ wait_for_letter:
+ 	in status, status_port
+ 	test s3, rx_present ; If data is present, carry bit should be 1
+ 	jump z, wait_for_letter ;Z bit will be set if there the rx_present bit is not set
+ 	ret
+ Main:
+ 	;Gather letters
+ 	call wait_for_letter
+ 	in first_letter, data_in_port
+ 	out first_letter, data_out_port
+ 	call get_back
+ 	out space, data_out_port 
+ 	;Test for which routine
+ 	comp first_letter, s_letter
+ 	jump z, swt_routine
+ 	comp first_letter, l_letter
+ 	jump z, led_routine
+ 	;None found, go back to start
+ 	jump Done
+ 	
+ get_back:
+  	call wait_for_letter
+ 	in second_letter, data_in_port
+ 	out second_letter, data_out_port
+ 	call wait_for_letter
+ 	in third_letter, data_in_port
+ 	out third_letter, data_out_port
+ 	ret
+ 	
+ swt_routine:
+ 	in temp, switches_port
+ 	and temp2, $00
+ 	or temp2, temp
+ 	and temp, $F0
+ 	and temp2, $0F
+ 	rr temp
+ 	rr temp
+ 	rr temp
+ 	rr temp
+ 	comp temp, $0a
+ 	jump c, num
+ lett:	add temp, $57
+ 	jump temp
+ num:	add temp, $30
+ temp:	comp temp2, $0a
+ 	jump c, num2
+ lett2:	add temp2, $57
+ 	jump temp2
+ num2:	add temp2, $30
+ temp2:	out temp, data_out_port
+ 	out temp2, data_out_port
+ 	jump Done
+ 	
+ led_routine:
+ 	call get_back
+ 	comp second_letter, $3A
+ 	jump c, num3
+ 	sub second_letter, $57
+ 	jump con
+ num3:	sub second_letter, $30
+ con:	sl0 second_letter
+ 	sl0 second_letter
+ 	sl0 second_letter
+ 	sl0 second_letter
+ 	comp third_letter, $3A
+ 	jump c, num4
+ 	sub third_letter, $57
+ 	jump con2
+ num4:	sub third_letter, $30
+ con2:	or second_letter, third_letter
+ 	out second_letter, led_port
+ 	jump Done
+ Done:
+ 	out new_line, data_out_port
+ 	out return, data_out_port
+ 	jump Main	
+ 	
+ 	
+ 	
