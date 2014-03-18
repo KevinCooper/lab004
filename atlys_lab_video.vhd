@@ -1,5 +1,6 @@
 --Author: Kevin Cooper
---Purpose: Implement the picoblaze processor, utilize the same port for input and output
+--Purpose: Implement the picoblaze processor, create a shell using the picoblaze and UART modules
+-- Note: Possible huge thing, since the line breaks/spaces are constants, the processor may be sending k_write_strobes instead of the regular signal.  This can cause much confusion as to why certain things are not displaying.
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -9,8 +10,8 @@ use UNISIM.VComponents.all;
 entity cool_sauce is
     port ( 
              clk   : in  std_logic; -- 100 MHz
-				 SW: in STD_LOGIC_VECTOR(7 downto 0);
-				 LED: out STD_LOGIC_VECTOR(7 downto 0);
+				 sw: in STD_LOGIC_VECTOR(7 downto 0);
+				 led: out STD_LOGIC_VECTOR(7 downto 0);
 				 reset: in STD_LOGIC;
 				 BTN0: in STD_LOGIC;
 				 uart_rx : in std_logic;
@@ -148,7 +149,7 @@ processor: kcpsm6
                      reset => kcpsm6_reset,
                        clk => clk);
 							  
-  test: custom_rom                   --Name to match your PSM file
+  test: custom_rom                --Name to match your PSM file
     generic map(             C_FAMILY => "S6",   --Family 'S6', 'V6' or '7S'
                     C_RAM_SIZE_KWORDS => 2,      --Program size '1', '2' or '4'
                  C_JTAG_LOADER_ENABLE => 1)      --Include JTAG Loader when set to '1' 
@@ -160,52 +161,30 @@ processor: kcpsm6
 							  
 	tx: uart_tx6
 		port map ( 
-			data_in => uart_rx_data_out,
-			en_16_x_baud => en_16_x_baud,  --DONT TOUCH
-			serial_out => uart_tx,			-- DONT TOUCH
-			buffer_write => uart_rx_data_present,--write_to_uart_tx,
+			data_in => uart_tx_data_in,
+			en_16_x_baud => en_16_x_baud,  
+			serial_out => uart_tx,			
+			buffer_write => write_to_uart_tx,
 			buffer_data_present => uart_tx_data_present,
-			buffer_half_full => open,
-			buffer_full => open,
+			buffer_half_full => uart_tx_half_full,
+			buffer_full => uart_tx_full,
 			buffer_reset => uart_tx_reset,
 			clk => clk);
 			
 	rx: uart_rx6
 		port map ( 
-			serial_in => uart_rx,		--DONT TOUCH
-			en_16_x_baud => en_16_x_baud,  -- DONT TOUCH
-			data_out => uart_rx_data_out , -- DONT TOUCH
-			buffer_read => uart_tx_data_present,--read_from_uart_rx,
+			serial_in => uart_rx,		
+			en_16_x_baud => en_16_x_baud,  
+			data_out => uart_rx_data_out , 
+			buffer_read => read_from_uart_rx,
 			buffer_data_present => uart_rx_data_present,
-			buffer_half_full => open,
-			buffer_full => open,
+			buffer_half_full => uart_rx_half_full,
+			buffer_full => uart_rx_full,
 			buffer_reset => uart_rx_reset,
 			clk => clk);
 			
 uart_tx_reset<= reset;
 uart_rx_reset<= reset;
-	
-	output_ports: process( clk, write_strobe)
-	begin
-		LEDS <= LEDS;
-		if(rising_edge(clk) and write_strobe='1') then
-			if(port_id=x"07") then
-				LED <= out_port;
-			end if;
-		end if;
-	end process;
-
-	input_ports: process( clk, read_strobe)
-	begin
-		if(rising_edge(clk) and read_strobe='1') then
-			if(port_id=X"AF") then
-				in_port <= SW;
-			end if;
-			if(port_id=X"07") then
-				in_port <= BTN0 & BTN0 & BTN0 & BTN0 & BTN0 & BTN0 & BTN0 & BTN0;
-			end if;
-		end if;
-	end process;
 	
 	baud_rate: process(clk)
 	begin
@@ -219,6 +198,84 @@ uart_rx_reset<= reset;
 			end if;
 		end if;
 	end process baud_rate;
-	
-	--LED Output
+  -------------------------------------------	
+  --	PICOBLAZE INTERFACE CODE --------------
+  --									 --------------
+  -----------------------------------------------------------------------------------------
+  -- General Purpose Input Ports. 
+  -----------------------------------------------------------------------------------------
+  --
+  -- Two input ports are used with the UART macros. The first is used to monitor the flags
+  -- on both the UART transmitter and receiver. The second is used to read the data from 
+  -- the UART receiver. Note that the read also requires a 'buffer_read' pulse to be 
+  -- generated.
+  --
+  -- This design includes a third input port to read 8 general purpose switches.
+  --
+
+  input_ports: process(clk)
+  begin
+    if clk'event and clk = '1' then
+      case port_id(1 downto 0) is
+        -- Read UART status at port address 00 hex
+        when "00" =>  in_port(0) <= uart_tx_data_present;
+                      in_port(1) <= uart_tx_half_full;
+                      in_port(2) <= uart_tx_full; 
+                      in_port(3) <= uart_rx_data_present;
+                      in_port(4) <= uart_rx_half_full;
+                      in_port(5) <= uart_rx_full;
+							 in_port(6) <= '0';
+							 in_port(7) <= '0';
+        -- Read UART_RX6 data at port address 01 hex
+        -- (see 'buffer_read' pulse generation below) 
+        when "01" =>       in_port <= uart_rx_data_out;
+        -- Read 8 general purpose switches at port address 02 hex
+        when "10" =>       in_port <= sw;
+        -- Don't Care for unused case(s) ensures minimum logic implementation  
+        when others =>    in_port <= "XXXXXXXX";  
+      end case;
+      -- Generate 'buffer_read' pulse following read from port address 01
+      if (read_strobe = '1') and (port_id(1 downto 0) = "01") then
+        read_from_uart_rx <= '1';
+       else
+        read_from_uart_rx <= '0';
+      end if;
+    end if;
+  end process input_ports;
+  --
+  -----------------------------------------------------------------------------------------
+  -- General Purpose Output Ports 
+  -----------------------------------------------------------------------------------------
+  --
+  -- In this simple example there are two output ports. 
+  --   A simple output port used to control a set of 8 general purpose LEDs.
+  --   A port used to write data directly to the FIFO buffer within 'uart_tx6' macro.
+  --
+  --
+  -- LEDs are connected to a typical KCPSM6 output port. 
+  --  i.e. A register and associated decode logic to enable data capture.
+  -- 
+  output_ports: process(clk)
+  begin
+    if clk'event and clk = '1' then
+      -- 'write_strobe' is used to qualify all writes to general output ports.
+      if k_write_strobe = '1' or write_strobe='1' then
+        -- Write to LEDs at port address 02 hex
+        if port_id(1) = '1' then
+          led <= out_port;
+        end if;
+      end if;
+    end if; 
+  end process output_ports;
+  --
+  -- Write directly to the FIFO buffer within '6' macro at port address 01 hex.
+  -- Note the direct connection of 'out_port' to the UART transmitter macro and the 
+  -- way that a single clock cycle write pulse is generated to capture the data.
+  -- 
+
+  uart_tx_data_in <= out_port;
+
+  write_to_uart_tx  <= '1' when ((write_strobe = '1') or (k_write_strobe = '1')) and (port_id(0) = '1')
+                           else '0'; 
+									
 end Cooper;
