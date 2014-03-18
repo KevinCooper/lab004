@@ -98,7 +98,7 @@ signal BTNSS: STD_LOGIC_VECTOR(7 downto 0);
 --
 --Signals used for the Baud rate
 --
-signal baud_count : integer range 0 to 325 := 0;
+signal baud_count : integer range 0 to 700 := 0;
 signal en_16_x_baud : std_logic := '0';
 --
 -- Signals used to connect UART_TX6
@@ -160,28 +160,31 @@ processor: kcpsm6
 							  
 	tx: uart_tx6
 		port map ( 
-			data_in => uart_tx_data_in,
-			en_16_x_baud => en_16_x_baud,
-			serial_out => uart_tx,
-			buffer_write => write_to_uart_tx,
+			data_in => uart_rx_data_out,
+			en_16_x_baud => en_16_x_baud,  --DONT TOUCH
+			serial_out => uart_tx,			-- DONT TOUCH
+			buffer_write => uart_rx_data_present,--write_to_uart_tx,
 			buffer_data_present => uart_tx_data_present,
-			buffer_half_full => uart_tx_half_full,
-			buffer_full => uart_tx_full,
+			buffer_half_full => open,
+			buffer_full => open,
 			buffer_reset => uart_tx_reset,
 			clk => clk);
 			
 	rx: uart_rx6
 		port map ( 
-			serial_in => uart_rx,
-			en_16_x_baud => en_16_x_baud,
-			data_out => uart_rx_data_out ,
-			buffer_read => read_from_uart_rx,
+			serial_in => uart_rx,		--DONT TOUCH
+			en_16_x_baud => en_16_x_baud,  -- DONT TOUCH
+			data_out => uart_rx_data_out , -- DONT TOUCH
+			buffer_read => uart_tx_data_present,--read_from_uart_rx,
 			buffer_data_present => uart_rx_data_present,
-			buffer_half_full => uart_rx_half_full,
-			buffer_full => uart_rx_full,
+			buffer_half_full => open,
+			buffer_full => open,
 			buffer_reset => uart_rx_reset,
 			clk => clk);
 			
+uart_tx_reset<= reset;
+uart_rx_reset<= reset;
+	
 	output_ports: process( clk, write_strobe)
 	begin
 		LEDS <= LEDS;
@@ -207,7 +210,7 @@ processor: kcpsm6
 	baud_rate: process(clk)
 	begin
 		if clk'event and clk = '1' then
-			if baud_count = 325 then
+			if baud_count = 651 then
 				baud_count <= 0;
 				en_16_x_baud <= '1';
 			else
