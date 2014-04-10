@@ -31,13 +31,16 @@ The most important part to the lab was to get the characters to echo correctly t
 graphic 1
  - Implement the LED command
  - Implement the SWT command
+
 ![commands](images/command_ex.jpg)
 graphic 2
+
 ## Implementation ##
 There were four components to get the basic functionality working.  The RX and TX module needed to be included in order to echo the character correctly on the screen.  After, the PicoBlaze needed to be included, along with the ROM containing our code to run the program.  The following lab4a top shell can be seen below.
 ### Top Shell Diagram ###
 ![Block Diagram](images/BlockDiagram.png)
 graphic 3
+
 ## Conclusion ##
 The amount of time needed to implement required funcitonality was less than most labs, however there were some hiccups.  Too much time was spent on problems with the toolset, like understanding custom VHDL needed to be added to the pao file for the microblaze.  This cause extreme amounts of time to be spent on problems that weren't even really part of the lab.
 ## Documentation ##
