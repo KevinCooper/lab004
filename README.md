@@ -31,7 +31,7 @@ The most important part to the lab was to get the characters to echo correctly t
 graphic 1
  - Implement the LED command
  - Implement the SWT command
-![commands](images/command_ex.png)
+![commands](images/command_ex.jpg)
 graphic 2
 ## Implementation ##
 There were four components to get the basic functionality working.  The RX and TX module needed to be included in order to echo the character correctly on the screen.  After, the PicoBlaze needed to be included, along with the ROM containing our code to run the program.  The following lab4a top shell can be seen below.
