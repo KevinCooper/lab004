@@ -4,13 +4,11 @@
 - [Approach](#approach)
 - [Implementation](#implementation)
     - [Top Shell Diagram](#top-shell-diagram)
-    - [](#character-generator-diagram)
-    - [](#character-generator)
-    - [](#nes-controller)
+    - [PicoBlaze](#picoblaze)
+    - [MicroBlaze](#microbloaze)
 - [Testing and Debugging](#testing-and-debugging)
-    - [](#character-positioning)
-    - [(#math)
-    - [](#scrolling)
+    - [UCF file](#ucf)
+    - [pao file](#pao)
 - [Conclusion](#conclusion)
 - [Documentation](#documentation)
 
@@ -33,14 +31,54 @@ graphic 1
  - Implement the SWT command
 
 ![commands](images/command_ex.jpg)
+
 graphic 2
 
 ## Implementation ##
 There were four components to get the basic functionality working.  The RX and TX module needed to be included in order to echo the character correctly on the screen.  After, the PicoBlaze needed to be included, along with the ROM containing our code to run the program.  The following lab4a top shell can be seen below.
 ### Top Shell Diagram ###
 ![Block Diagram](images/BlockDiagram.png)
-graphic 3
-
+graphic 4
+### PicoBlaze ###
+The PicoBlaze module was relatively easy to implement.  The hardest part of this part of the project was correctly getting the UART TX and RX modules working.  After first being told that the terminal should show double characters, this lead to the correct code as being seen incorrect.  However, all that was needed was the RX modules to be directly wired to the TX module in the vhdl.  An example of the implementation of th modules is seen below:
+```vhdl
+	tx: uart_tx6
+		port map ( 
+			data_in => uart_tx_data_in,
+			en_16_x_baud => en_16_x_baud,  
+			serial_out => uart_tx,			
+			buffer_write => write_to_uart_tx,
+			buffer_data_present => uart_tx_data_present,
+			buffer_half_full => uart_tx_half_full,
+			...
+```
+The documentation that came with the source code for the PicoBlaze provided multiple examples of how to use multiplexors to hook up the module to the custom VHDL peripherals.  An example of some of the code can be seen below:
+```vhdl
+ if rising_edge(clk) then
+    case port_id(1 downto 0) is
+        -- Read UART status at port address 00 hex
+        when "00" =>  in_port(0) <= uart_tx_data_present;
+                      in_port(1) <= uart_tx_half_full;
+                      in_port(2) <= uart_tx_full; 
+                      in_port(3) <= uart_rx_data_present;
+                      ...
+    if (read_strobe = '1') and (port_id(1 downto 0) = "01") then
+        read_from_uart_rx <= '1';
+    else
+```
+The assembly for the PicoBlaze was relatively simple, just outputting character to the custom IO ports for the PicoBlaze module.  An example of the IO for the PicoBlaze is shown in the following code:
+```
+ wait_for_letter:
+ 	in status, status_port
+ 	test s3, rx_present      ; If data is present, carry bit should be 1
+ 	jump z, wait_for_letter  ;Z bit will be set if there the rx_present bit is not set
+ 	ret
+```
+### MircroBlaze ###
+## Testing and Debugging ###
+Several issues arose during the implementation of primarily the MicroBlaze module.
+### UCF ###
+### PAO ###
 ## Conclusion ##
 The amount of time needed to implement required funcitonality was less than most labs, however there were some hiccups.  Too much time was spent on problems with the toolset, like understanding custom VHDL needed to be added to the pao file for the microblaze.  This cause extreme amounts of time to be spent on problems that weren't even really part of the lab.
 ## Documentation ##
