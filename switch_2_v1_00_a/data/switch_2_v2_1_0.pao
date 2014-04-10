@@ -1,0 +1,10 @@
+##############################################################################
+## Filename:          C:/Users/C15Kevin.Cooper/Desktop/Documents/ECE383/IP/MyProcessorIPLib/pcores/switch_2_v1_00_a/data/switch_2_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Fri Apr 04 10:08:40 2014 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib proc_common_v3_00_a  all 
+lib axi_lite_ipif_v1_01_a  all 
+lib switch_2_v1_00_a user_logic vhdl
+lib switch_2_v1_00_a switch_2 vhdl

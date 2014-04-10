@@ -1,0 +1,12 @@
+run
+-opt_level 2
+-opt_mode speed
+-ifmt mixed
+-ifn "C:\Users\C15Kevin.Cooper\Desktop\Documents\ECE383\IP\MyProcessorIPLib\pcores\switch_2_v1_00_a\devl\synthesis\switch_2_xst.prj"
+-top switch_2
+-p virtex6
+-ofn "C:\Users\C15Kevin.Cooper\Desktop\Documents\ECE383\IP\MyProcessorIPLib\pcores\switch_2_v1_00_a\devl\synthesis\switch_2_xst.ngc"
+-iobuf NO
+-rtlview YES
+-hierarchy_separator /
+-work_lib switch_2_v1_00_a
