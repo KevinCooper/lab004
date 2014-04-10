@@ -1,0 +1,17 @@
+##############################################################################
+## Filename:          C:/Users/C15Kevin.Cooper/Desktop/Documents/ECE383/IP/MyProcessorIPLib/pcores/led_interface_v1_00_a/data/led_interface_v2_1_0.pao
+## Description:       Peripheral Analysis Order
+## Date:              Fri Apr 04 08:57:17 2014 (by Create and Import Peripheral Wizard)
+##############################################################################
+
+lib proc_common_v3_00_a  all 
+lib axi_lite_ipif_v1_01_a  all 
+lib led_interface_v1_00_a user_logic vhdl
+lib led_interface_v1_00_a led_interface vhdl
+lib led_interface_v1_00_a atlys_lab_video vhdl
+lib led_interface_v1_00_a dvid vhdl
+lib led_interface_v1_00_a h_sync_gen vhdl
+lib led_interface_v1_00_a pixel_gen vhdl
+lib led_interface_v1_00_a TDMS_encoder vhdl
+lib led_interface_v1_00_a v_sync_gen vhdl
+lib led_interface_v1_00_a vga_sync vhdl

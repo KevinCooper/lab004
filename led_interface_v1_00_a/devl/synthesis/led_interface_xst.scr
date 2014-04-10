@@ -1,0 +1,12 @@
+run
+-opt_level 2
+-opt_mode speed
+-ifmt mixed
+-ifn "C:\Users\C15Kevin.Cooper\Desktop\Documents\ECE383\IP\MyProcessorIPLib\pcores\led_interface_v1_00_a\devl\synthesis\led_interface_xst.prj"
+-top led_interface
+-p virtex6
+-ofn "C:\Users\C15Kevin.Cooper\Desktop\Documents\ECE383\IP\MyProcessorIPLib\pcores\led_interface_v1_00_a\devl\synthesis\led_interface_xst.ngc"
+-iobuf NO
+-rtlview YES
+-hierarchy_separator /
+-work_lib led_interface_v1_00_a
