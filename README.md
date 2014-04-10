@@ -37,7 +37,7 @@ graphic 2
 ## Implementation ##
 There were four components to get the basic functionality working.  The RX and TX module needed to be included in order to echo the character correctly on the screen.  After, the PicoBlaze needed to be included, along with the ROM containing our code to run the program.  The following lab4a top shell can be seen below.
 ### Top Shell Diagram ###
-![Block Diagram](images/BlockDiagram.png)
+![Block Diagram](images/block.PNG)
 graphic 4
 ### PicoBlaze ###
 The PicoBlaze module was relatively easy to implement.  The hardest part of this part of the project was correctly getting the UART TX and RX modules working.  After first being told that the terminal should show double characters, this lead to the correct code as being seen incorrect.  However, all that was needed was the RX modules to be directly wired to the TX module in the vhdl.  An example of the implementation of th modules is seen below:
