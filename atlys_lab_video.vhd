@@ -1,6 +1,5 @@
 --Author: Kevin Cooper
 --Purpose: Implement the picoblaze processor, create a shell using the picoblaze and UART modules
--- Note: Possible huge thing, since the line breaks/spaces are constants, the processor may be sending k_write_strobes instead of the regular signal.  This can cause much confusion as to why certain things are not displaying.
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;

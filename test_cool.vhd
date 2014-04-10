@@ -68,11 +68,11 @@ BEGIN
 		reset <='0';
       -- hold reset state for 100 ns.	
 		uart_rx<='1';
-		wait for 104 us;
+		wait for 110 us;
 		uart_rx<='0';
 		wait for 104 us;
 		uart_rx<='1';
-		wait for 104 us;
+		wait for 104 us; 
       wait;
    end process;
 
