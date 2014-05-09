@@ -1,4 +1,4 @@
-# Lab 3 #
+# Lab 4 #
 ## Table of Contents ##
 - [Introduction](#introduction)
 - [Approach](#approach)
